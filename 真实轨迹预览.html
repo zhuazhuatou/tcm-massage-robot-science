@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>真实机械臂轨迹预览</title>
+  <style>
+    :root {
+      --ink: #17282c;
+      --muted: #65767b;
+      --line: rgba(23,40,44,.15);
+      --teal: #126c72;
+      --orange: #b96723;
+      --paper: #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    }
+    #scene { display: block; width: 100%; height: 100%; background: white; }
+    .top {
+      position: absolute; left: 18px; top: 15px; pointer-events: none;
+    }
+    .eyebrow { color: var(--orange); font-size: 10px; font-weight: 700; letter-spacing: .11em; }
+    h1 { margin: 5px 0 0; font: 700 clamp(19px, 2.5vw, 29px)/1.15 "SimHei", sans-serif; letter-spacing: -.02em; }
+    .status {
+      position: absolute; right: 16px; top: 15px;
+      padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px;
+      background: rgba(255,255,255,.9); color: var(--muted); font-size: 10px;
+      backdrop-filter: blur(8px);
+    }
+    .status strong { color: var(--orange); font-size: 16px; }
+    .controls {
+      position: absolute; left: 16px; right: 16px; bottom: 14px;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+      padding: 9px; border: 1px solid var(--line); border-radius: 15px;
+      background: rgba(255,255,255,.93); backdrop-filter: blur(10px);
+    }
+    button {
+      min-height: 34px; padding: 6px 12px; border: 1px solid var(--line);
+      border-radius: 999px; background: white; color: var(--muted); font: 700 11px var(--font-sans, sans-serif);
+    }
+    button:hover, button:focus-visible { color: var(--teal); }
+    button.is-active { border-color: var(--teal); background: var(--teal); color: white; }
+    #toggle { margin-left: auto; background: var(--teal); border-color: var(--teal); color: white; }
+    .hint { color: var(--muted); font-size: 10px; }
+    .loading {
+      position: absolute; inset: 0; z-index: 8; display: grid; place-items: center;
+      background: white; transition: opacity .25s ease;
+    }
+    .loading.hidden { opacity: 0; pointer-events: none; }
+    .loading span { color: var(--muted); font-size: 11px; }
+    .error { display: none; position: absolute; inset: 20px; place-items: center; text-align: center; color: #8d454a; }
+    @media (max-width: 560px) {
+      .top { left: 12px; top: 10px; }
+      .status { right: 10px; top: 10px; }
+      .controls { left: 9px; right: 9px; bottom: 9px; gap: 5px; }
+      button { padding: 6px 9px; }
+      .hint { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .loading { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="top">
+    <div class="eyebrow">真实 robotarm2 · MATLAB 关节轨迹</div>
+    <h1>机械臂轨迹预览</h1>
+  </div>
+  <div class="status"><span id="modeLabel">指压</span> · <strong id="forceLabel">15.0</strong> N</div>
+  <div class="controls" role="group" aria-label="运动轨迹控制">
+    <button class="mode is-active" type="button" data-mode="press">指压</button>
+    <button class="mode" type="button" data-mode="knead">指揉</button>
+    <button class="mode" type="button" data-mode="vibration">指振</button>
+    <button id="toggle" type="button">暂停</button>
+    <span class="hint">拖动旋转 · 滚轮缩放</span>
+  </div>
+  <div class="loading" id="loading"><span>正在载入真实机械臂网格</span></div>
+  <div class="error" id="error">当前浏览器无法启动 WebGL。</div>
+
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="assets/vendor/STLLoader.js"></script>
+  <script src="assets/vendor/OrbitControls.js"></script>
+  <script src="assets/robot/robot-structure.js"></script>
+  <script src="assets/robot/robot-modes.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const canvas = document.getElementById("scene");
+      const loading = document.getElementById("loading");
+      const errorBox = document.getElementById("error");
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      } catch (error) {
+        loading.style.display = "none";
+        errorBox.style.display = "grid";
+        return;
+      }
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+      renderer.setClearColor(0xffffff, 1);
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff);
+      const camera = new THREE.PerspectiveCamera(31, 1, 0.01, 10);
+      const controls = new THREE.OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.07;
+      controls.target.set(0.01226, 0.2034, 0.18711);
+      camera.position.set(0.01016, -0.83757, 0.29955);
+
+      scene.add(new THREE.HemisphereLight(0xffffff, 0xdce2e0, 0.62));
+      const key = new THREE.DirectionalLight(0xffffff, 0.62);
+      key.position.set(-0.6, -0.3, 1.4);
+      key.castShadow = true;
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0xffead7, 0.16);
+      fill.position.set(1.2, 0.8, 0.7);
+      scene.add(fill);
+
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.4, 2.4),
+        new THREE.MeshStandardMaterial({ color: 0xf4f3ef, roughness: 1 })
+      );
+      floor.position.set(0.1, 0.1, -0.022);
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(2, 40, 0xd9dfde, 0xedf0ef);
+      grid.rotation.x = Math.PI / 2;
+      grid.position.set(0.1, 0.1, -0.02);
+      grid.material.opacity = 0.48;
+      grid.material.transparent = true;
+      scene.add(grid);
+
+      const forearm = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 64, 36),
+        new THREE.MeshStandardMaterial({ color: 0xc18a73, roughness: 1, metalness: 0 })
+      );
+      forearm.scale.set(0.075, 0.300, 0.066);
+      forearm.position.set(0.219, 0.201, 0.064);
+      forearm.castShadow = true;
+      scene.add(forearm);
+
+      const contact = window.ROBOT_MODES.contactPointM;
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.0036, 0.0051, 40),
+        new THREE.MeshBasicMaterial({ color: 0x98604c, side: THREE.DoubleSide })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(contact[0], contact[1], contact[2] + 0.0017);
+      scene.add(ring);
+
+      const structure = window.ROBOT_STRUCTURE;
+      const modeData = window.ROBOT_MODES;
+      const modeById = Object.fromEntries(modeData.modes.map(mode => [mode.id, mode]));
+      const loader = new THREE.STLLoader();
+      const linkGroups = {};
+      const joints = [];
+      const linkNames = ["base_link", "link_01", "link_02", "link_03", "link_04", "link_05", "link_06"];
+      const meshFiles = ["base_link", "link_01", "link_02", "link_03", "link_04", "link_05", "link_06"];
+      const colors = [0x17393d, 0x1a5c61, 0x1e7277, 0x247b7f, 0x315d61, 0x36464a, 0xe0c69c];
+
+      function decodeBase64(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        return bytes.buffer;
+      }
+
+      function setURDFRotation(object, rpy) {
+        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), rpy[0]);
+        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), rpy[1]);
+        const qz = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), rpy[2]);
+        object.quaternion.copy(qz).multiply(qy).multiply(qx);
+      }
+
+      const baseGroup = new THREE.Group();
+      linkGroups.base_link = baseGroup;
+      scene.add(baseGroup);
+      if (structure.meshes.base_link) {
+        const geometry = loader.parse(decodeBase64(structure.meshes.base_link.data));
+        geometry.computeVertexNormals();
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+          color: colors[0], roughness: .72, metalness: .08
+        }));
+        mesh.castShadow = true;
+        baseGroup.add(mesh);
+      }
+
+      for (const joint of structure.joints) {
+        const origin = new THREE.Group();
+        origin.position.fromArray(joint.xyz);
+        setURDFRotation(origin, joint.rpy);
+        linkGroups[joint.parent].add(origin);
+        const axis = new THREE.Group();
+        origin.add(axis);
+        const child = new THREE.Group();
+        axis.add(child);
+        linkGroups[joint.child] = child;
+        const record = structure.meshes[joint.child];
+        if (record) {
+          const geometry = loader.parse(decodeBase64(record.data));
+          geometry.computeVertexNormals();
+          const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+            color: colors[linkNames.indexOf(joint.child)] || 0x315d61,
+            roughness: .72,
+            metalness: .08
+          }));
+          mesh.castShadow = true;
+          child.add(mesh);
+        }
+        joints.push({ joint, axis, vector: new THREE.Vector3().fromArray(joint.axis).normalize() });
+      }
+
+      let activeMode = "press";
+      let playTime = 0;
+      let playing = true;
+      const clock = new THREE.Clock();
+      const modeLabel = document.getElementById("modeLabel");
+      const forceLabel = document.getElementById("forceLabel");
+      const toggle = document.getElementById("toggle");
+
+      function forceForMode(mode) {
+        if (mode.id === "press") return 15;
+        if (mode.id === "knead") return 12;
+        return 10;
+      }
+
+      function applyTime(time) {
+        const mode = modeById[activeMode];
+        const force = forceForMode(mode);
+        const run = mode.runs.reduce((best, candidate) =>
+          Math.abs(candidate.forceN - force) < Math.abs(best.forceN - force) ? candidate : best
+        );
+        const duration = run.timeS[run.timeS.length - 1];
+        const clamped = Math.min(Math.max(time, 0), duration);
+        let index = Math.min(Math.floor(clamped / duration * (run.timeS.length - 1)), run.timeS.length - 2);
+        index = Math.max(0, index);
+        const span = run.timeS[index + 1] - run.timeS[index];
+        const alpha = (clamped - run.timeS[index]) / Math.max(span, 1e-9);
+        joints.forEach((item, j) => {
+          const q = run.jointAnglesRad[j][index] +
+            (run.jointAnglesRad[j][index + 1] - run.jointAnglesRad[j][index]) * alpha;
+          item.axis.quaternion.setFromAxisAngle(item.vector, q);
+        });
+        const currentForce = run.normalForceN[index] +
+          (run.normalForceN[index + 1] - run.normalForceN[index]) * alpha;
+        modeLabel.textContent = mode.label;
+        forceLabel.textContent = currentForce.toFixed(1);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const delta = Math.min(clock.getDelta(), .05);
+        if (playing) {
+          playTime += delta;
+          const duration = modeData.durationS;
+          if (playTime >= duration) playTime %= duration;
+          applyTime(playTime);
+        }
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      document.querySelectorAll(".mode").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".mode").forEach(item => item.classList.remove("is-active"));
+          button.classList.add("is-active");
+          activeMode = button.dataset.mode;
+          playTime = 0;
+          playing = true;
+          toggle.textContent = "暂停";
+          applyTime(playTime);
+        });
+      });
+      toggle.addEventListener("click", () => {
+        playing = !playing;
+        toggle.textContent = playing ? "暂停" : "继续";
+      });
+
+      function resize() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / Math.max(height, 1);
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener("resize", resize);
+      resize();
+      applyTime(0);
+      animate();
+      requestAnimationFrame(() => loading.classList.add("hidden"));
+    })();
+  </script>
+</body>
+</html>

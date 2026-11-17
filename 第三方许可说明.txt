@@ -1,0 +1,10 @@
+第三方组件许可说明
+
+本网页使用 Three.js r128 及其官方示例中的 STLLoader 和 OrbitControls。
+Three.js 按 MIT License 发布，版权归 Three.js Authors 所有。
+
+项目自行提供的 robotarm2 URDF、STL 网格、MATLAB 轨迹数据、调查报告、
+结构设计图片和科普文字仅用于本项目结题与科普展示。
+
+穴位资料图 acupoint_chart.webp 来自项目中期材料。若用于公开出版、商业展示
+或电视节目，应进一步核对原始书籍或图片的使用授权。
