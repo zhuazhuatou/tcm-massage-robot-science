@@ -348,8 +348,22 @@
     .tile-large { grid-column: span 5; }
     .tile-medium { grid-column: span 4; }
     .tile-small { grid-column: span 3; }
+    .tile-half { grid-column: span 6; }
     .tile-wide { grid-column: span 7; }
     .tile-full { grid-column: 1 / -1; }
+    .gallery-subhead {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: 22px;
+      align-items: end;
+      margin-top: 7px;
+      padding: 26px 0 4px;
+      border-top: 1px solid var(--line);
+    }
+    .gallery-subhead h3 { margin: 0; font-size: 22px; }
+    .gallery-subhead p { margin: 0; color: var(--muted); font-size: 13px; }
+    .photo-proof button { height: 470px; flex-basis: 470px; background: #eeeeeb; }
     .photo-placeholder {
       display: grid;
       place-items: center;
@@ -560,13 +574,14 @@
       .nav-links a { display: block !important; width: 100%; padding: 6px 0; }
       .nav-report { margin-top: 4px; }
       .hero-grid, .demo, .motion-grid, .survey-grid, .evidence-grid, .safety-grid { grid-template-columns: 1fr; }
+      .gallery-subhead { grid-template-columns: 1fr; gap: 6px; }
       .motion-grid > .motion-card,
       .motion-grid > .video-card,
       .motion-grid > .source-card { height: 450px; }
       .hero-visual { min-height: 470px; }
       .hero-main { inset: 0 24px 46px 0; }
       .process { grid-template-columns: repeat(2, 1fr); }
-      .tile-large, .tile-medium, .tile-small { grid-column: span 6; }
+      .tile-large, .tile-medium, .tile-small, .tile-half { grid-column: span 6; }
       .tile-wide, .tile-full { grid-column: 1 / -1; }
       .figure button { height: 380px; flex-basis: 380px; }
       .source-strip { grid-template-columns: 1fr; }
@@ -836,11 +851,11 @@
       <div class="section-head reveal">
         <div>
           <div class="section-tag">04 / 结构设计</div>
-          <span class="evidence-badge">设计图纸</span>
+          <span class="evidence-badge">设计图纸与实物照片</span>
         </div>
         <div>
           <h2>把揉、振、按拆成可设计的部件</h2>
-          <p class="section-intro">这些图片来自项目中期材料中的结构设计稿。它们展示设计过程，不等同于完整整机或人体测试照片。</p>
+          <p class="section-intro">前半部分展示项目材料中的结构设计稿，后半部分补入3D打印样品、局部细节和两种按摩头的装配成品照片。</p>
         </div>
       </div>
       <div class="gallery reveal">
@@ -880,9 +895,34 @@
           </button>
           <figcaption><strong>视觉模型片段</strong>展示研发过程，不把初步结果写成医疗级验证。</figcaption>
         </figure>
-        <div class="figure tile-full photo-placeholder">
-          <div><strong>3D打印按摩头实物照片待补</strong>补拍整体、侧面、结构分解和接口细节后，替换这一区域。</div>
+        <div class="gallery-subhead">
+          <h3>3D打印样品与装配成品</h3>
+          <p>以下照片补充展示打印样品、结构细节，以及两种按摩头装到样机上的实际形态。照片用于记录制作进展，不等同于人体测试。</p>
         </div>
+        <figure class="figure tile-half photo-proof">
+          <button type="button" data-full="assets/prototype_sample.jpg" data-title="3D打印样品整体">
+            <img src="assets/prototype_sample.jpg" alt="3D打印按摩头样品整体实拍照片" loading="lazy">
+          </button>
+          <figcaption><strong>01 · 3D打印样品</strong>展示打印完成后的按摩头样品整体轮廓。</figcaption>
+        </figure>
+        <figure class="figure tile-half photo-proof">
+          <button type="button" data-full="assets/prototype_detail.jpg" data-title="3D打印样品细节">
+            <img src="assets/prototype_detail.jpg" alt="3D打印按摩头样品局部细节实拍照片" loading="lazy">
+          </button>
+          <figcaption><strong>02 · 样品细节</strong>近距离记录端头、连接部位与打印表面细节。</figcaption>
+        </figure>
+        <figure class="figure tile-half photo-proof">
+          <button type="button" data-full="assets/installed_head_type_a.jpg" data-title="第一种按摩头装配成品">
+            <img src="assets/installed_head_type_a.jpg" alt="第一种按摩头装配到样机后的成品实拍照片" loading="lazy">
+          </button>
+          <figcaption><strong>03 · 装配成品 A</strong>第一种按摩头安装到样机后的实物形态。</figcaption>
+        </figure>
+        <figure class="figure tile-half photo-proof">
+          <button type="button" data-full="assets/installed_head_type_b.jpg" data-title="第二种按摩头装配成品">
+            <img src="assets/installed_head_type_b.jpg" alt="第二种按摩头装配到样机后的成品实拍照片" loading="lazy">
+          </button>
+          <figcaption><strong>04 · 装配成品 B</strong>第二种按摩头安装到样机后的实物形态。</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -954,7 +994,7 @@
           <div class="evidence-list">
             <div class="evidence-item"><span>01</span><p>204份《中医推拿与智能按摩设备认知调查》原始问卷与正式分析报告。</p></div>
             <div class="evidence-item"><span>02</span><p>内关、孔最、曲池三个手臂目标点及相对坐标定位方法。</p></div>
-            <div class="evidence-item"><span>03</span><p>四版按摩头结构设计、50 N静应力分析及3D打印按摩头模型。</p></div>
+            <div class="evidence-item"><span>03</span><p>四版按摩头结构设计、50 N静应力分析、3D打印样品及两种按摩头装配成品照片。</p></div>
             <div class="evidence-item"><span>04</span><p>六自由度机械臂URDF、MoveIt配置、MATLAB三点运动与路径示意图。</p></div>
           </div>
         </div>
@@ -964,7 +1004,7 @@
             <div class="evidence-item"><span>01</span><p>完整相机标定、真实穴位定位精度和不同肤色、体型条件的测试。</p></div>
             <div class="evidence-item"><span>02</span><p>机械臂与按摩头安装后的整机联动、力控闭环和安全急停测试。</p></div>
             <div class="evidence-item"><span>03</span><p>人体皮肤接触、舒适度、耐久性与专业机构评价。</p></div>
-            <div class="evidence-item"><span>04</span><p>3D打印按摩头实物照片和旋转展示视频。</p></div>
+            <div class="evidence-item"><span>04</span><p>两种按摩头安装到完整机械臂后的联动测试、耐久验证和旋转展示视频。</p></div>
           </div>
         </div>
       </div>
