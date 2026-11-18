@@ -348,7 +348,7 @@
     .tile-large { grid-column: span 5; }
     .tile-medium { grid-column: span 4; }
     .tile-small { grid-column: span 3; }
-    .tile-half { grid-column: span 6; }
+    .tile-quarter { grid-column: span 3; }
     .tile-wide { grid-column: span 7; }
     .tile-full { grid-column: 1 / -1; }
     .gallery-subhead {
@@ -363,7 +363,7 @@
     }
     .gallery-subhead h3 { margin: 0; font-size: 22px; }
     .gallery-subhead p { margin: 0; color: var(--muted); font-size: 13px; }
-    .photo-proof button { height: 470px; flex-basis: 470px; background: #eeeeeb; }
+    .photo-proof button { height: 360px; flex-basis: 360px; background: #eeeeeb; }
     .photo-placeholder {
       display: grid;
       place-items: center;
@@ -581,7 +581,7 @@
       .hero-visual { min-height: 470px; }
       .hero-main { inset: 0 24px 46px 0; }
       .process { grid-template-columns: repeat(2, 1fr); }
-      .tile-large, .tile-medium, .tile-small, .tile-half { grid-column: span 6; }
+      .tile-large, .tile-medium, .tile-small, .tile-quarter { grid-column: span 6; }
       .tile-wide, .tile-full { grid-column: 1 / -1; }
       .figure button { height: 380px; flex-basis: 380px; }
       .source-strip { grid-template-columns: 1fr; }
@@ -899,25 +899,25 @@
           <h3>3D打印样品与装配成品</h3>
           <p>以下照片补充展示打印样品、结构细节，以及两种按摩头装到样机上的实际形态。照片用于记录制作进展，不等同于人体测试。</p>
         </div>
-        <figure class="figure tile-half photo-proof">
+        <figure class="figure tile-quarter photo-proof">
           <button type="button" data-full="assets/prototype_sample.jpg" data-title="3D打印样品整体">
             <img src="assets/prototype_sample.jpg" alt="3D打印按摩头样品整体实拍照片" loading="lazy">
           </button>
           <figcaption><strong>01 · 3D打印样品</strong>展示打印完成后的按摩头样品整体轮廓。</figcaption>
         </figure>
-        <figure class="figure tile-half photo-proof">
+        <figure class="figure tile-quarter photo-proof">
           <button type="button" data-full="assets/prototype_detail.jpg" data-title="3D打印样品细节">
             <img src="assets/prototype_detail.jpg" alt="3D打印按摩头样品局部细节实拍照片" loading="lazy">
           </button>
           <figcaption><strong>02 · 样品细节</strong>近距离记录端头、连接部位与打印表面细节。</figcaption>
         </figure>
-        <figure class="figure tile-half photo-proof">
+        <figure class="figure tile-quarter photo-proof">
           <button type="button" data-full="assets/installed_head_type_a.jpg" data-title="第一种按摩头装配成品">
             <img src="assets/installed_head_type_a.jpg" alt="第一种按摩头装配到样机后的成品实拍照片" loading="lazy">
           </button>
           <figcaption><strong>03 · 装配成品 A</strong>第一种按摩头安装到样机后的实物形态。</figcaption>
         </figure>
-        <figure class="figure tile-half photo-proof">
+        <figure class="figure tile-quarter photo-proof">
           <button type="button" data-full="assets/installed_head_type_b.jpg" data-title="第二种按摩头装配成品">
             <img src="assets/installed_head_type_b.jpg" alt="第二种按摩头装配到样机后的成品实拍照片" loading="lazy">
           </button>
